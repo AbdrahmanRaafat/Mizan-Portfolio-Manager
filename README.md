@@ -13,3 +13,5 @@ Interactive public demo of **Mizan**, a browser-based portfolio management exper
 > Demo prices and figures are illustrative only and are not live market data.
 
 Built for public demonstration and portfolio sharing.
+
+_Last deployment trigger: GitHub Pages enabled._
