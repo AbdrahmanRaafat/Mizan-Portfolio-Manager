@@ -27,6 +27,8 @@ jobs:
         run: |
           test -s server/index.js
           grep -q "ميزان — المحفظة الاستثمارية" server/index.js
+          ! grep -q "localStorage" server/index.js
+          grep -q "sessionStorage" server/index.js
 
       - name: Validate Cloudflare Worker build
         run: npx wrangler deploy --dry-run --outdir dist-worker
