@@ -1,0 +1,40 @@
+name: Verify Mizan Full-Stack Build
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Use Node 22
+        uses: actions/setup-node@v5
+        with:
+          node-version: '22'
+
+      - name: Restore original Mizan bundle
+        run: npm run build
+
+      - name: Verify original bundle checksum
+        run: |
+          test -s server/index.js
+          grep -q "ميزان — المحفظة الاستثمارية" server/index.js
+
+      - name: Start Mizan and test HTTP routes
+        run: |
+          PORT=3100 npm start > /tmp/mizan.log 2>&1 &
+          PID=$!
+          for i in {1..20}; do
+            if curl -fsS http://127.0.0.1:3100/ -o /tmp/mizan.html; then break; fi
+            sleep 1
+          done
+          grep -q "ميزان — المحفظة الاستثمارية" /tmp/mizan.html
+          STATUS=$(curl -sS -o /tmp/api.json -w "%{http_code}" -H "content-type: application/json" -d '{}' http://127.0.0.1:3100/api/price)
+          test "$STATUS" = "422"
+          grep -q "سوق أو نوع معاملة غير صحيح" /tmp/api.json
+          kill $PID
