@@ -1,0 +1,24 @@
+name: Probe Demo Asset Histories
+on:
+  push:
+    paths:
+      - '.github/workflows/history-probe.yml'
+  workflow_dispatch:
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Probe production history API
+        run: |
+          URL="https://mizan-portfolio-manager.rahman-raafat.workers.dev"
+          probe () {
+            name="$1"; body="$2"
+            code=$(curl -sS --max-time 60 -o "/tmp/$name.json" -w "%{http_code}" -H "content-type: application/json" -d "$body" "$URL/api/history" || true)
+            echo "=== $name HTTP $code ==="
+            head -c 500 "/tmp/$name.json" || true
+            echo
+          }
+          probe COMI '{"market":"eg","symbol":"COMI","start":"2026-06-01","end":"2026-09-01","currency":"EGP"}'
+          probe AAPL '{"market":"us","symbol":"AAPL","start":"2026-06-01","end":"2026-09-01","currency":"EGP"}'
+          probe USD '{"market":"fx","symbol":"USD","start":"2026-06-01","end":"2026-09-01","currency":"EGP"}'
+          probe GOLD24 '{"market":"gold","symbol":"GOLD/EGP","karat":24,"start":"2026-06-01","end":"2026-09-01","currency":"EGP"}'
