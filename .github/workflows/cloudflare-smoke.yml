@@ -10,7 +10,7 @@ jobs:
   smoke:
     runs-on: ubuntu-latest
     steps:
-      - name: Test production site and API
+      - name: Test production site, assets and API
         run: |
           URL="https://mizan-portfolio-manager.rahman-raafat.workers.dev"
           echo "Testing $URL"
@@ -19,6 +19,13 @@ jobs:
           echo "PAGE_STATUS=$STATUS"
           test "$STATUS" = "200"
           grep -q "ميزان — المحفظة الاستثمارية" /tmp/page.html
+
+          for ASSET in app.js style.css connection.css analysis.css interactive.css; do
+            ASSET_STATUS=$(curl -L --max-time 60 -sS -o "/tmp/$ASSET" -w "%{http_code}" "$URL/$ASSET" || true)
+            echo "$ASSET=$ASSET_STATUS"
+            test "$ASSET_STATUS" = "200"
+            test -s "/tmp/$ASSET"
+          done
 
           API_STATUS=$(curl -sS -o /tmp/api.json -w "%{http_code}"             -H "content-type: application/json"             -d '{}'             "$URL/api/price" || true)
           echo "API_STATUS=$API_STATUS"
