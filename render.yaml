@@ -1,0 +1,9 @@
+services:
+  - type: web
+    name: mizan-portfolio-manager
+    runtime: node
+    plan: free
+    buildCommand: npm run build
+    startCommand: npm start
+    healthCheckPath: /
+    autoDeployTrigger: commit

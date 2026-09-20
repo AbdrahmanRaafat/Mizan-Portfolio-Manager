@@ -1,0 +1,11 @@
+{
+  "name": "mizan-portfolio-manager",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "engines": { "node": "22.x" },
+  "scripts": {
+    "build": "bash build.sh",
+    "start": "node server-node.mjs"
+  }
+}

@@ -1,17 +1,26 @@
 # Mizan Portfolio Manager
 
-Interactive public demo of **Mizan**, a browser-based portfolio management experience.
+This repository contains the **original Mizan browser application and API bundle**, adapted only at the runtime layer so the same application can run from a public web URL.
 
-## Demo features
-- Portfolio overview and holdings
-- Unrealized and realized P/L
-- Transaction history
-- Cash deposits and withdrawals
-- Asset allocation
-- Local browser storage for demo changes
+## What is preserved
+- Original Mizan UI and Arabic interface
+- Holdings and transaction management
+- Cash features
+- Portfolio analytics
+- Market-price/history API routes
+- Funds, FX and gold integrations
+- Backup/restore
+- Excel/PDF-related browser features
+- Local browser storage per visitor
 
-> Demo prices and figures are illustrative only and are not live market data.
+## Deployment
+The original application is stored as a verified compressed bundle under `bundle/`.
+During deployment, `npm run build` reconstructs `server/index.js` and verifies its SHA-256 before starting.
 
-Built for public demonstration and portfolio sharing.
+Run:
+```bash
+npm run build
+npm start
+```
 
-_Last deployment trigger: GitHub Pages enabled._
+The server listens on `0.0.0.0:$PORT`, making it suitable for Render, Railway, and similar Node hosting services.
