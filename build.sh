@@ -2,7 +2,7 @@
 set -euo pipefail
 mkdir -p server
 cat bundle/part-{01..15}.b64 | tr -d '\r\n' | base64 -d > server/index.js.xz
-echo "3738f2714bceb3f7e3507f02f5dc805d1c37252fba64d412c61b0691b034ad05  server/index.js.xz" | sha256sum -c -
+echo "e2a8712bd85ebe6ffd7aba67f89504ec9b140f08969d6db1105e6d39f130a5ef  server/index.js.xz" | sha256sum -c -
 if command -v xz >/dev/null 2>&1; then
   xz -d -f server/index.js.xz
 elif command -v python3 >/dev/null 2>&1; then
@@ -17,18 +17,4 @@ else
   exit 1
 fi
 test -s server/index.js
-# Privacy patch for public demo
-# Keep each visitor's portfolio state isolated to the browser tab/session.
-python3 - <<'PY'
-from pathlib import Path
-p=Path('server/index.js')
-s=p.read_text(encoding='utf-8')
-old=s
-# Front-end storage APIs embedded in the worker bundle are served as source text.
-s=s.replace('localStorage', 'sessionStorage')
-if s == old:
-    raise SystemExit('Privacy patch failed: no localStorage references found')
-p.write_text(s, encoding='utf-8')
-print('Applied isolated session storage for public demo.')
-PY
-echo "Mizan original web bundle restored successfully."
+echo "Mizan private-session web bundle restored successfully."

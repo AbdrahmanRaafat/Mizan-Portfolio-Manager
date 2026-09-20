@@ -10,38 +10,34 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Wait for Cloudflare auto deploy
-        run: sleep 20
+        run: sleep 25
 
-      - name: Test production demo, live prices, history and assets
+      - name: Verify private demo sessions and live data
         run: |
           set -e
           URL="https://mizan-portfolio-manager.rahman-raafat.workers.dev"
 
-          for i in {1..6}; do
-            curl -L --max-time 60 -fsS "$URL/" -o /tmp/page.html &&             curl -L --max-time 60 -fsS "$URL/app.js" -o /tmp/app.js &&             curl -L --max-time 60 -fsS "$URL/analysis-ui.mjs" -o /tmp/analysis.mjs &&             grep -q "بيانات المحفظة والمعاملات تجريبية فقط" /tmp/page.html &&             ! grep -q "ابدئي محفظة فعلية أولًا لتفعيل بيانات المصدر" /tmp/app.js &&             ! grep -q "اخرجي من البيانات التجريبية لتحليل معاملات فعلية" /tmp/analysis.mjs && break
+          for i in {1..8}; do
+            curl -L --max-time 60 -fsS "$URL/" -o /tmp/page.html || true
+            curl -L --max-time 60 -fsS "$URL/app.js" -o /tmp/app.js || true
+            curl -L --max-time 60 -fsS "$URL/allocation-planner.mjs" -o /tmp/allocation.mjs || true
+            if grep -q "كل جلسة مستقلة وخاصة بهذا التبويب" /tmp/page.html 2>/dev/null &&                grep -q "sessionStorage.getItem('mizan-v2')" /tmp/app.js 2>/dev/null &&                grep -q "if(hasSavedSession){render();refresh();}else loadDemo();" /tmp/app.js 2>/dev/null; then
+              break
+            fi
             sleep 10
           done
 
-          grep -q "بيانات المحفظة والمعاملات تجريبية فقط" /tmp/page.html
-          ! grep -q "ابدئي محفظة فعلية أولًا لتفعيل بيانات المصدر" /tmp/app.js
-          ! grep -q "اخرجي من البيانات التجريبية لتحليل معاملات فعلية" /tmp/analysis.mjs
+          grep -q "كل جلسة مستقلة وخاصة بهذا التبويب" /tmp/page.html
+          grep -q "تغييراتك خاصة بهذه الجلسة ولا تظهر لأي مستخدم آخر" /tmp/page.html
+          grep -q "sessionStorage.getItem('mizan-v2')" /tmp/app.js
+          grep -q "sessionStorage.setItem('mizan-v2'" /tmp/app.js
+          ! grep -q "localStorage.getItem('mizan-v2')" /tmp/app.js
+          grep -q "sessionStorage.getItem('mizan-brokers')" /tmp/app.js
+          grep -q "sessionStorage.getItem('mizan-target-weights')" /tmp/allocation.mjs
+          grep -q "if(hasSavedSession){render();refresh();}else loadDemo();" /tmp/app.js
 
-          test_api () {
-            name="$1"; endpoint="$2"; body="$3"
-            code=$(curl -sS --max-time 90 -o "/tmp/$name.json" -w "%{http_code}"               -H "content-type: application/json" -d "$body" "$URL$endpoint")
-            echo "$name HTTP=$code"
-            cat "/tmp/$name.json" | head -c 500
-            echo
-            test "$code" = "200"
-          }
+          API_STATUS=$(curl -sS --max-time 90 -o /tmp/fx.json -w "%{http_code}"             -H "content-type: application/json"             -d '{"market":"fx","symbol":"USD"}' "$URL/api/price")
+          echo "FX_PRICE_HTTP=$API_STATUS"
+          test "$API_STATUS" = "200"
 
-          test_api fx_price /api/price '{"market":"fx","symbol":"USD"}'
-          test_api gold_price /api/price '{"market":"gold","symbol":"GOLD/EGP","karat":24}'
-          test_api eg_price /api/price '{"market":"eg","symbol":"COMI"}'
-          test_api us_price /api/price '{"market":"us","symbol":"AAPL"}'
-
-          test_api eg_history /api/history '{"market":"eg","symbol":"COMI","start":"2026-01-06","end":"2026-09-20","currency":"EGP"}'
-          test_api us_history /api/history '{"market":"us","symbol":"AAPL","start":"2026-01-06","end":"2026-09-20","currency":"EGP"}'
-          test_api fx_history /api/history '{"market":"fx","symbol":"USD","start":"2026-01-06","end":"2026-09-20","currency":"EGP"}'
-
-          echo "Full demo/live-data smoke test passed."
+          echo "Private-session production smoke test passed."

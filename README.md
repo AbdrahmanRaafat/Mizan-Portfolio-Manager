@@ -1,10 +1,11 @@
-## What is preserved
-- Original Mizan UI and Arabic interface
-- Holdings and transaction management
-- Cash features
-- Portfolio analytics
-- Market-price/history API routes
-- Funds, FX and gold integrations
-- Backup/restore
-- Excel/PDF-related browser features
-- Local browser storage per visitor
+# Mizan Portfolio Manager
+
+Public full-stack web demo of Mizan.
+
+- Each visitor gets an isolated browser-session portfolio.
+- A fresh session starts with clean demo data.
+- Portfolio, cash, broker and target-allocation changes stay in that visitor's browser session only.
+- Market prices, historical data and analytics continue to use the live application APIs.
+- Backup/restore remains available for users who want to keep a copy of their session data.
+
+Production: Cloudflare Workers.

@@ -20,15 +20,21 @@ jobs:
       - name: Install Wrangler
         run: npm install --no-audit --no-fund
 
-      - name: Restore original Mizan bundle
+      - name: Restore Mizan bundle
         run: npm run build
 
-      - name: Verify original bundle checksum
+      - name: Verify isolated portfolio sessions
         run: |
           test -s server/index.js
           grep -q "ميزان — المحفظة الاستثمارية" server/index.js
-          ! grep -q "localStorage" server/index.js
-          grep -q "sessionStorage" server/index.js
+          grep -q "sessionStorage.getItem('mizan-v2')" server/index.js
+          grep -q "sessionStorage.setItem('mizan-v2'" server/index.js
+          ! grep -q "localStorage.getItem('mizan-v2')" server/index.js
+          ! grep -q "localStorage.setItem('mizan-v2'" server/index.js
+          grep -q "sessionStorage.getItem('mizan-brokers')" server/index.js
+          grep -q "sessionStorage.getItem('mizan-target-weights')" server/index.js
+          grep -q "if(hasSavedSession){render();refresh();}else loadDemo();" server/index.js
+          grep -q "كل جلسة مستقلة وخاصة بهذا التبويب" server/index.js
 
       - name: Validate Cloudflare Worker build
         run: npx wrangler deploy --dry-run --outdir dist-worker
