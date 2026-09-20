@@ -3,6 +3,8 @@ name: Smoke Test Cloudflare Production
 on:
   push:
     paths:
+      - 'worker-entry.mjs'
+      - 'wrangler.jsonc'
       - '.github/workflows/cloudflare-smoke.yml'
   workflow_dispatch:
 
@@ -15,8 +17,9 @@ jobs:
           URL="https://mizan-portfolio-manager.rahman-raafat.workers.dev"
           for i in {1..24}; do
             code=$(curl -L --max-time 30 -sS -o /tmp/app.js -w "%{http_code}" "$URL/app.js" || true)
-            if [ "$code" = "200" ] && grep -q "محفظة تجريبية · أسعار حية" /tmp/app.js; then
-              echo "New version is live."
+            core_code=$(curl -L --max-time 30 -sS -o /tmp/core.mjs -w "%{http_code}" "$URL/core.mjs" || true)
+            if [ "$code" = "200" ] && [ "$core_code" = "200" ]               && grep -q "demoVersion:2" /tmp/app.js               && grep -q "demoVersion:Number.isInteger" /tmp/core.mjs; then
+              echo "New demo migration version is live."
               exit 0
             fi
             echo "Waiting for Cloudflare deployment... attempt $i"
@@ -49,4 +52,4 @@ jobs:
             grep -q '"rows":\[' "/tmp/$name.json"
           done
 
-          echo "Production demo live-data smoke test passed."
+          echo "Production demo migration and live-data smoke test passed."
