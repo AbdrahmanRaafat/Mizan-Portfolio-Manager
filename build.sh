@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 set -euo pipefail
 mkdir -p server
-cat bundle/part-*.b64 | tr -d '\r\n' | base64 -d > server/index.js.xz
-echo "6ec0c0a81e04b6c02ae46d5a3456cfdb43e31e5293140c384e81e308fc98e650  server/index.js.xz" | sha256sum -c -
+cat bundle/part-{01..14}.b64 | tr -d '\r\n' | base64 -d > server/index.js.xz
+echo "3738f2714bceb3f7e3507f02f5dc805d1c37252fba64d412c61b0691b034ad05  server/index.js.xz" | sha256sum -c -
 if command -v xz >/dev/null 2>&1; then
   xz -d -f server/index.js.xz
 elif command -v python3 >/dev/null 2>&1; then
