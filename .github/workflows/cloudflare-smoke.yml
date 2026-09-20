@@ -1,0 +1,28 @@
+name: Smoke Test Cloudflare Production
+
+on:
+  push:
+    paths:
+      - '.github/workflows/cloudflare-smoke.yml'
+  workflow_dispatch:
+
+jobs:
+  smoke:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Test production site and API
+        run: |
+          URL="https://mizan-portfolio-manager.rahman-raafat.workers.dev"
+          echo "Testing $URL"
+
+          STATUS=$(curl -L --max-time 60 --retry 2 --retry-delay 5 -sS -o /tmp/page.html -w "%{http_code}" "$URL/" || true)
+          echo "PAGE_STATUS=$STATUS"
+          test "$STATUS" = "200"
+          grep -q "ميزان — المحفظة الاستثمارية" /tmp/page.html
+
+          API_STATUS=$(curl -sS -o /tmp/api.json -w "%{http_code}"             -H "content-type: application/json"             -d '{}'             "$URL/api/price" || true)
+          echo "API_STATUS=$API_STATUS"
+          test "$API_STATUS" = "422"
+          grep -q "سوق أو نوع معاملة غير صحيح" /tmp/api.json
+
+          echo "Cloudflare production smoke test passed."
