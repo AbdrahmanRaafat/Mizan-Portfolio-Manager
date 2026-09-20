@@ -17,4 +17,18 @@ else
   exit 1
 fi
 test -s server/index.js
+# Privacy patch for public demo
+# Keep each visitor's portfolio state isolated to the browser tab/session.
+python3 - <<'PY'
+from pathlib import Path
+p=Path('server/index.js')
+s=p.read_text(encoding='utf-8')
+old=s
+# Front-end storage APIs embedded in the worker bundle are served as source text.
+s=s.replace('localStorage', 'sessionStorage')
+if s == old:
+    raise SystemExit('Privacy patch failed: no localStorage references found')
+p.write_text(s, encoding='utf-8')
+print('Applied isolated session storage for public demo.')
+PY
 echo "Mizan original web bundle restored successfully."
